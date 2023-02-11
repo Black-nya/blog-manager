@@ -3,10 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node bin/www"
+    "start": "node-dev bin/www"
   },
   "dependencies": {
     "cookie-parser": "*",
+    "cors": "^2.8.5",
     "debug": "*",
     "express": "*",
     "http-errors": "*",
@@ -15,6 +16,7 @@
     "pug": "*"
   },
   "devDependencies": {
+    "node-dev": "^8.0.0",
     "typescript": "^4.9.4"
   }
 }

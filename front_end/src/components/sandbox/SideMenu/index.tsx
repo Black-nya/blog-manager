@@ -1,58 +1,76 @@
 import { MenuProps, Menu } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
     DesktopOutlined,
     FileOutlined,
     PieChartOutlined,
     TeamOutlined,
     UserOutlined,
+    UnorderedListOutlined
 } from '@ant-design/icons';
 import Sider from 'antd/es/layout/Sider';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import apiRequest from '@/requests/api'
+import { MyMenu } from '@/types/types';
+import { ItemType } from 'antd/es/menu/hooks/useItems'
+const icons = {
+    "/home": <DesktopOutlined />,
+    "/user-manage": <UserOutlined />,
+    "/user-manage/list": <UnorderedListOutlined />,
+}
 
-type MenuItem = Required<MenuProps>['items'][number];
 function getItem(
     label: React.ReactNode,
     key: React.Key,
     icon?: React.ReactNode,
-    children?: MenuItem[],
-): MenuItem {
+    children?: ItemType[],
+): ItemType {
     return {
         key,
         icon,
         children,
         label,
-    } as MenuItem;
+    } as ItemType;
 }
-
-const items: MenuItem[] = [
-    getItem('Home', '/home', <PieChartOutlined />),
-    getItem('Account Management', '2', <DesktopOutlined />, [
-        getItem('User List','/account-manage/userlist')
-    ]),
-    getItem('User Policy', 'sub1', <UserOutlined />, [
-        getItem('Roles List', '/user-manage/rolelist'),
-        getItem('Policy List', '/user-manage/policylist')
-    ]),
-];
-
+function process(menus: MyMenu[] | any): ItemType[] {
+    return menus.map(
+        (item: MyMenu) => {
+            const { title, key, children, pagepermission } = item;
+            return pagepermission === 1 ? getItem(title, key, icons[key as keyof object], children ? process(children) : undefined) : undefined
+        }
+    )
+}
 const comp = (
     {
         collapsed,
         setCollapsed,
-    }: 
-    {
-        collapsed : boolean,
-        setCollapsed : Function,
-    }) => {
-        const navigateTo = useNavigate()
-        const menuSelect = (e :{key :string})=>{
-            navigateTo(e.key)
-        }
+    }:
+        {
+            collapsed: boolean,
+            setCollapsed: Function,
+        }) => {
+    const [menus, setMenus] = useState<ItemType[]>([])
+    useEffect(
+        () => {
+            apiRequest.getMenus().then(res => {
+                setMenus(process(((res as unknown) as MyMenu[]).sort((a:MyMenu,b:MyMenu)=>(a.id-b.id))))
+            })
+        }, []
+    )
+    
+    const navigateTo = useNavigate()
+    const menuSelect = (e: { key: string }) => {
+        navigateTo(e.key)
+    }
+    const location = useLocation()
+    const [openKeys, setOpenkeys] = useState<string[]>(['/'+location.pathname.split('/')[1]])
+    const handleSelect = (keys: string[]) => {
+        setOpenkeys([keys[keys.length - 1]])
+    }
     return (
         <Sider width={250} collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
             <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)' }} />
-            <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} onClick={menuSelect}/>
+            <Menu theme="dark" defaultSelectedKeys={[location.pathname]} mode="inline" items={menus} onClick={menuSelect} onOpenChange={handleSelect} openKeys={openKeys}/>
         </Sider>
     )
 }

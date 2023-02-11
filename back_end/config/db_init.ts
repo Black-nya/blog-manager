@@ -1,5 +1,10 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
-const credentials = __dirname + '/../../X509-cert-7895691143232349000.pem'
+import path from  'path'
+import { fileURLToPath } from 'url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const credentials = path.join(__dirname, '/../../X509-cert-7895691143232349000.pem')
+
 const client = new MongoClient('mongodb+srv://black-nyan.bh7utmz.mongodb.net/?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority', {
   sslKey: credentials,
   sslCert: credentials,
@@ -19,7 +24,7 @@ interface Menu {
   id: number;
   title: string;
   key: string;
-  pagepermission: number;
+  pagepermission?: number;
   children?: Menu[];
   grade?: number;
 }
@@ -40,7 +45,7 @@ await db.createCollection<User>('users', {
           description: "'id' must be a string"
         },
         password: {
-          bsonType: "password",
+          bsonType: "string",
           description: "'password' must be a string"
         },
         posts: {
@@ -84,58 +89,48 @@ await db.createCollection<Menu>('menus', {
   }
 })
 function removeEmpty(obj) {
-  return Object.fromEntries(
-    Object.entries(obj)
+  return Object.fromEntries(Object.entries(obj)
       .filter(([_, v]) => v != null)
-      .map(([k, v]) => [k, v === Object(v) ? removeEmpty(v) : v])
-  );
+      .map(([k, v]) => [k, Array.isArray(v) ? v.map(item=>removeEmpty(item)) : v]));
 }
-function generate(id, title, key, pagepermission?: number, grade?: number, children?: Array<Menu>): Menu {
+function generate(id, title, key, pagepermission?, grade?, children?) {
   return removeEmpty({
-    id, title, key, pagepermission, children, grade
-  })
+      id, title, key, pagepermission, children, grade
+  });
 }
-const users = db.collection('users');
-await users.insertMany(
-  [generate(1, "Home", "/home", 1, 1),
-  generate(2, "User Manage", "/user-manage", 1, 1,
-    [generate(3, "Add User", "/user-manage/add", undefined, 2),
+const data_menus =
+    [generate(1, "Home", "/home", 1, 1),
+    generate(2, "User Manage", "/user-manage", 1, 1, [generate(3, "Add User", "/user-manage/add", undefined, 2),
     generate(4, "Remove User", "/user-manage/remove", undefined, 2),
     generate(5, "Edit User", "/user-manage/edit", undefined, 2),
-    generate(6, "Userlist", "/user-manage/list", undefined, 2)]),
-  generate(7, "Authorization Manage", "/auth-manage", 1, 1, [
-    generate(8, "Role List", "/auth-manage/role/list", 1, 2),
-    generate(9, "Right List", "auth-manage/right/list", 1, 2),
-    generate(10, "Edit Role", "auth-manage/role/edit", undefined, 2),
-    generate(11, "Delete Role", "auth-manage/role/remove", undefined, 2),
-    generate(12, "Modify Right", "auth-manage/right/edit", undefined, 2),
-    generate(13, "Remove Right", "auth-manage/right/remove", undefined, 2)
-  ]),
-  generate(14, "Blog Manage", "/blog-manage", 1, 1, [
-    generate(15, "Blog List", "/blog-manage/list", undefined, 2),
-    generate(16, "New Blog", "/blog-manage/list", undefined, 2),
-    generate(17, "Update Blog", "/blog-manage/list", undefined, 2),
-    generate(18, "Preview Blog", "/blog-manage/list", undefined, 2),
-    generate(19, "Draft", "/blog-manage/list", undefined, 2),
-    generate(20, "Tags", "/blog-manage/list", undefined, 2),
-  ]),
-  generate(21, "Review", "/review-manage", 1, 1,[
-    generate(22,"Blog review", "/review-manage/review",1,2),
-    generate(23,"Review List", "/review-manage/list",1,2),
-  ]),
-  generate(24, "Publish", "/publish-manage", 1, 1,[
-    generate(25,"Approved", "/publish-manage/approved",1,2),
-    generate(26,"Published", "/publish-manage/published",1,2),
-    generate(27,"Archived", "/publish-manage/archived",1,2),
-  ])
-  ]
-)
-// const pets = client.db().collection<Pet>('pets');
-// const petCursor = pets.find();
-
-// for await (const pet of petCursor) {
-//   console.log(`${pet.name} is a ${pet.kind}!`);
-// }
-
+    generate(6, "Userlist", "/user-manage/list", 1, 2)]),
+    generate(7, "Authorization Manage", "/auth-manage", 1, 1, [
+        generate(8, "Role List", "/auth-manage/role/list", 1, 2),
+        generate(9, "Right List", "/auth-manage/right/list", 1, 2),
+        generate(10, "Edit Role", "/auth-manage/role/edit", undefined, 2),
+        generate(11, "Delete Role", "/auth-manage/role/remove", undefined, 2),
+        generate(12, "Modify Right", "/auth-manage/right/edit", undefined, 2),
+        generate(13, "Remove Right", "/auth-manage/right/remove", undefined, 2)
+    ]),
+    generate(14, "Blog Manage", "/blog-manage", 1, 1, [
+        generate(15, "Blog List", "/blog-manage/list", undefined, 2),
+        generate(16, "New Blog", "/blog-manage/add", 1, 2),
+        generate(17, "Update Blog", "/blog-manage/update/:id", undefined, 2),
+        generate(18, "Preview Blog", "/blog-manage/preview/:id", undefined, 2),
+        generate(19, "Draft", "/blog-manage/draft", 1, 2),
+        generate(20, "Tags", "/blog-manage/tags", 1, 2),
+    ]),
+    generate(21, "Review", "/review-manage", 1, 1, [
+        generate(22, "Blog review", "/review-manage/review", 1, 2),
+        generate(23, "Review List", "/review-manage/list", 1, 2),
+    ]),
+    generate(24, "Publish", "/publish-manage", 1, 1, [
+        generate(25, "Approved", "/publish-manage/approved", 1, 2),
+        generate(26, "Published", "/publish-manage/published", 1, 2),
+        generate(27, "Archived", "/publish-manage/archived", 1, 2),
+    ])];
+const menus = db.collection('menus');
+await menus.insertMany(data_menus);
+client.close()
 export default db
 

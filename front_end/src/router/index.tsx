@@ -3,9 +3,9 @@ import { createBrowserRouter, Navigate } from "react-router-dom"
 import Login from '@/views/login'
 import BlogSandBox from '@/views/sandbox'
 const Home = lazy(()=>import("@/views/sandbox/home"))
-const Userlist = lazy(()=>import("@/views/sandbox/account-manage/userlist"))
-const Policylist = lazy(()=>import("@/views/sandbox/user-manage/policylist"))
-const Rolelist = lazy(()=>import("@/views/sandbox/user-manage/rolelist"))
+const Userlist = lazy(()=>import("@/views/sandbox/user-manage/userlist"))
+const Policylist = lazy(()=>import("@/views/sandbox/right-manage/policylist"))
+const Rolelist = lazy(()=>import("@/views/sandbox/right-manage/rolelist"))
 const wrap = (elem:JSX.Element)=>(
     <Suspense>
         {elem}    
@@ -19,19 +19,23 @@ export const router = createBrowserRouter(
         },
         {
             path: '/',
-            element: localStorage.getItem("token")? <BlogSandBox />: <Navigate to="/login"/>,
+            element: localStorage.getItem("token")? <Navigate to="/home"/>: <Navigate to="/login"/>,
+        },
+        {
+            path: '/',
+            element: <BlogSandBox />,
             children: [
                 {
                     path:'/home',
                     element: wrap(<Home />)
                 },{
-                    path:'/account-manage/userlist',
+                    path:'/user-manage/list',
                     element: wrap(<Userlist />)
                 },{
-                    path:'/user-manage/rolelist',
+                    path:'/auth-manage/role/list',
                     element: wrap(<Rolelist />)
                 },{
-                    path:'/user-manage/policylist',
+                    path:'/auth-manage/right/list',  
                     element: wrap(<Policylist />)
                 }
             ]
