@@ -49,7 +49,7 @@ const dbmodel = {
     return await roleCursor.toArray()
   },
   deleteRole: async (id)=>{
-    return await db.collection("menus").deleteOne(
+    return await db.collection("roles").deleteOne(
       {_id:ObjectId(id)}
     )
   },
@@ -61,7 +61,20 @@ const dbmodel = {
    },
 
   getUsers: async ()=>{
-    const roleCursor = db.collection("users").find()
+    const roleCursor = db.collection("users").aggregate(
+      [
+        {
+          $lookup:
+          {
+            from: "roles",
+            localField: "roleId",
+            foreignField: "_id",
+            as:"role"
+          }
+        },
+        {$unwind: '$role'}
+      ]
+    )
     return await roleCursor.toArray()
   },
   deleteUser: async (id)=>{
@@ -70,10 +83,41 @@ const dbmodel = {
     )
   },
   updateUser: async (id, data) => {
+    if(data.roleId){
+      data.roleId=ObjectId(data.roleId);
+    }
     return await db.collection("users").updateOne(
       {_id:ObjectId(id)},
       {$set:data}
     )
-   }
+   },
+   addUser: async (data)=>{
+    return await db.collection("users").insertOne(
+      {
+        ...data,
+        roleId: ObjectId(data.roleId)
+      }
+    )
+   },
+   checkUser: async(data) => await db.collection("users").aggregate(
+    [
+      {
+        $match: {...data, roleState:true}
+      },
+      {
+        $lookup:
+        {
+          from: "roles",
+          localField: "roleId",
+          foreignField: "_id",
+          as:"role"
+        }
+      },
+      {
+        $unwind: '$role'
+      }
+    ]
+  ).toArray(),
+  getRegions: async()=> await db.collection("regions").find().toArray()
 }
 module.exports = dbmodel

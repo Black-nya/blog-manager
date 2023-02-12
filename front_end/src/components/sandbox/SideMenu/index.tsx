@@ -18,6 +18,7 @@ const icons = {
     "/user-manage": <UserOutlined />,
     "/user-manage/list": <UnorderedListOutlined />,
 }
+const {role: {rights}} = JSON.parse(localStorage.getItem("token"))
 
 function getItem(
     label: React.ReactNode,
@@ -32,11 +33,13 @@ function getItem(
         label,
     } as ItemType;
 }
-function process(menus: MyMenu[] | any): ItemType[] {
-    return menus.map(
-        (item: MyMenu) => {
-            const { title, key, children, pagepermission } = item;
-            return pagepermission === 1 ? getItem(title, key, icons[key as keyof object], children ? process(children) : undefined) : undefined
+function process(menus: MyMenu[]): ItemType[] {
+    return menus.filter(
+        (item) => (item.pagepermission === 1 && rights.includes(item.key))  
+    ).map(
+        (item) => {
+            const {title, key, children} = item;
+            return getItem(title, key, icons[key as keyof object], children ? process(children) : undefined)
         }
     )
 }

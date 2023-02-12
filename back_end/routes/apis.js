@@ -2,18 +2,6 @@ var express = require('express');
 const dbmodel = require('../config/model');
 var router = express.Router();
 
-router.get('/user/:id',(req,res)=>{
-    res.send("sdfs");
-})
-router.patch('/user/:id',(req,res)=>{
-    
-})
-router.post('/user',(req,res)=>{
-
-})
-router.delete('/user/:id',(req,res)=>{
-
-})
 router.get('/menu',async (req,res)=>{
     const data = await dbmodel.getMenus();
     res.send(data)
@@ -36,14 +24,24 @@ router.patch('/role/:id',async(req,res)=>{
 })
 
 router.get('/user',async(req,res)=>{
-    const data = await dbmodel.getUsers();
-    res.send(data)
+    if(req.query){
+        res.send(await dbmodel.checkUser(req.query))
+    }else{
+        const data = await dbmodel.getUsers();
+        res.send(data)
+    }
 })
 router.delete('/user/:id',async(req,res)=>{
     res.send(await dbmodel.deleteUser(req.params.id))
 })
 router.patch('/user/:id',async(req,res)=>{
     res.send(await dbmodel.updateUser(req.params.id,req.body))
+})
+router.post('/user',async(req,res)=>{
+    res.send(await dbmodel.addUser(req.body))
+})
+router.get('/region',async(req,res)=>{
+    res.send(await dbmodel.getRegions());
 })
 
 module.exports = router

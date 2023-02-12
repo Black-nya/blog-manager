@@ -1,5 +1,6 @@
 import { ObjectID } from 'bson';
 export interface MyMenu {
+    _id: ObjectID;
     id: number;
     title: string;
     key: string;
@@ -22,5 +23,11 @@ export interface User{
     roleState: boolean;
     default: boolean;
     region: string;
-    roleId: number;
+    roleId: ObjectID;
+}
+export interface Region{
+    _id: ObjectID;
+    id: number;
+    title: string;
+    value: string;
 }

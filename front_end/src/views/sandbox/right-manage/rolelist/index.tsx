@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react'
 import apiRequest from '@/requests/api'
 import { MyMenu, Role } from '@/types/types';
 import { DeleteOutlined, EditOutlined, ExclamationCircleFilled } from '@ant-design/icons'
-import { Key } from 'antd/es/table/interface';
 import { ObjectID } from 'bson';
 const { confirm } = Modal
 export default function Rolelist() {
@@ -51,7 +50,7 @@ export default function Rolelist() {
 
   const handleDelete = (item: Role) => {
     confirm({
-      title: 'Do you Want to delete these items?',
+      title: 'Are you sure to delete this role?',
       icon: <ExclamationCircleFilled />,
       content: 'Some descriptions',
       okText: 'Yes',

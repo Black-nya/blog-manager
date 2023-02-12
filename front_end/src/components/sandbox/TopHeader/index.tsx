@@ -8,14 +8,12 @@ import styles from './index.module.scss'
 import { Avatar, Dropdown } from "antd"
 import type { MenuProps } from 'antd';
 
+const { username, role: {roleName} } = JSON.parse(localStorage.getItem("token"));
+
 const items: MenuProps['items'] = [
     {
       key: '1',
-      label: (
-        <a target="_blank" rel="noopener noreferrer" href="https://www.antgroup.com">
-          Admin
-        </a>
-      ),
+      label: roleName,
     },
     {
       key: '2',
@@ -23,6 +21,8 @@ const items: MenuProps['items'] = [
       label: 'Log out',
     },
   ];
+
+
 const comp = (
     {
         colorBgContainer,
@@ -34,13 +34,15 @@ const comp = (
             collapsed: boolean,
             setCollapsed: Function
         }) => {
+            
+            
     return (
         <Header style={{ padding: 0, background: colorBgContainer, display: "flex", justifyContent: "space-between" }}>
             <div className={styles.trigger} onClick={() => setCollapsed(!collapsed)}>
                 {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             </div>
             <div className={styles.avatar}>
-                <span>Welcome Admin</span>
+                <span>Welcome, {username}!</span>
                 <Dropdown menu={{ items }}>
                     <Avatar size={40} icon={<UserOutlined />} />
                 </Dropdown>
